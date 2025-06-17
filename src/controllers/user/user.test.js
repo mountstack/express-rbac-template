@@ -5,6 +5,7 @@ const User = require('../../models/User');
 const dotenv = require('dotenv');
 const testErrorMiddleware = require('../../utils/testErrorMiddleware');
 const jwt = require('jsonwebtoken');
+const Role = require('../../models/role/Role');
 
 // Load environment variables
 dotenv.config();
@@ -32,14 +33,13 @@ afterAll(async () => {
 describe('User Controller - Update User Details', () => {
     let testUser;
     let accessToken;
-    let demoRoleId;
 
     beforeEach(async () => {
         // Create a test user
         testUser = await User.create({
             email: 'test@gmail.com',
             password: '12345678'
-        });
+        }); 
 
         // Generate access token
         accessToken = jwt.sign(
@@ -47,30 +47,37 @@ describe('User Controller - Update User Details', () => {
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
         );
-
-        // Create a demo role ID
-        demoRoleId = new mongoose.Types.ObjectId().toString();
     });
 
     test('should update user details with valid data', async () => {
         const response = await request(app)
-            .put('/api/users/me')
+            .put('/api/users/edit')
             .set('Authorization', `Bearer ${accessToken}`)
             .send({
-                name: 'Updated Name',
-                role: demoRoleId
+                name: 'Updated Name'
             });
+
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
         expect(response.body.message).toBe('User details updated successfully');
         expect(response.body.data.user.name).toBe('Updated Name');
-        expect(response.body.data.user.role).toBe(demoRoleId);
+    });
+
+    test('should not update user details when no fields provided', async () => {
+        const response = await request(app)
+            .put('/api/users/edit')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({});
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.message).toBe('Name is missing');
     });
 
     test('should not update user details without auth token', async () => {
         const response = await request(app)
-            .put('/api/users/me')
+            .put('/api/users/edit')
             .send({
                 name: 'Updated Name'
             });
@@ -80,34 +87,9 @@ describe('User Controller - Update User Details', () => {
         expect(response.body.message).toBe('Not authorized to access this route');
     });
 
-    test('should not update user details when no fields provided', async () => {
-        const response = await request(app)
-            .put('/api/users/me')
-            .set('Authorization', `Bearer ${accessToken}`)
-            .send({});
-
-        expect(response.status).toBe(400);
-        expect(response.body.success).toBe(false);
-        expect(response.body.message).toBe('Name or role is missing');
-    });
-
-    test('should update only provided fields', async () => {
-        const response = await request(app)
-            .put('/api/users/me')
-            .set('Authorization', `Bearer ${accessToken}`)
-            .send({
-                name: 'Updated Name'
-            });
-
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-        expect(response.body.data.user.name).toBe('Updated Name');
-        expect(response.body.data.user.role).toBe(null); // Default value
-    });
-
     test('should not update user details with invalid token', async () => {
         const response = await request(app)
-            .put('/api/users/me')
+            .put('/api/users/edit')
             .set('Authorization', 'Bearer invalid-token')
             .send({
                 name: 'Updated Name'
@@ -117,17 +99,126 @@ describe('User Controller - Update User Details', () => {
         expect(response.body.success).toBe(false);
         expect(response.body.message).toBe('Not authorized to access this route');
     });
+});
 
-    test('should not update user details with invalid role id', async () => {
+describe('User Controller - Set User Role', () => {
+    let testUser;
+    let accessToken;
+    let testRoleId;
+
+    beforeEach(async () => {
+        // Create a test user with business owner type
+        testUser = await User.create({
+            email: 'test@gmail.com',
+            password: '12345678',
+            type: 'bussiness owner'
+        });
+
+        // Generate access token
+        accessToken = jwt.sign(
+            { _id: testUser._id },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+        );
+
+        // Create a test role ID
+        testRoleId = new mongoose.Types.ObjectId().toString();
+    });
+
+    test('should set user role with valid role ID (business owner)', async () => {
         const response = await request(app)
-            .put('/api/users/me')
+            .put('/api/users/set-new-role')
             .set('Authorization', `Bearer ${accessToken}`)
             .send({
-                role: 'invalid-role-id'
+                roleId: testRoleId
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.message).toBe('User role updated successfully');
+        expect(response.body.data.user.role).toBe(testRoleId);
+    });
+
+
+    test('should not set user role without role ID', async () => {
+        const response = await request(app)
+            .put('/api/users/set-new-role')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({});
+        
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.message).toBe('Role ID is required');
+    });
+
+    test('should not set user role with invalid role ID format', async () => {
+        const response = await request(app)
+            .put('/api/users/set-new-role')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .send({
+                roleId: 'invalid-role-id'
             });
 
         expect(response.status).toBe(400);
         expect(response.body.success).toBe(false);
-        expect(response.body.message).toBe('Invalid role ID');
+        expect(response.body.message).toBe('Invalid role ID format');
+    });
+
+    test('should not set user role without auth token', async () => {
+        const response = await request(app)
+            .put('/api/users/set-new-role')
+            .send({
+                roleId: testRoleId
+            });
+
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
+        expect(response.body.message).toBe('Not authorized to access this route');
+    });
+
+    test('should not set user role with invalid token', async () => {
+        const response = await request(app)
+            .put('/api/users/set-new-role')
+            .set('Authorization', 'Bearer invalid-token')
+            .send({
+                roleId: testRoleId
+            });
+
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
+        expect(response.body.message).toBe('Not authorized to access this route');
+    });
+
+    test('should not set user role without role_edit permission', async () => {
+        // Create a role with a different permission (not role_edit)
+        const roleWithoutPermission = await Role.create({
+            name: 'Limited Role',
+            permissions: [new mongoose.Types.ObjectId()] // A valid permission ID that's not role_edit
+        });
+
+        // Create a user with the limited role
+        const limitedUser = await User.create({
+            email: 'limited@test.com',
+            password: 'password123',
+            type: 'employee',
+            role: roleWithoutPermission._id
+        });
+
+        const limitedUserToken = jwt.sign(
+            { _id: limitedUser._id },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+        );
+
+        const response = await request(app)
+            .put('/api/users/set-new-role')
+            .set('Authorization', `Bearer ${limitedUserToken}`)
+            .send({
+                roleId: testRoleId
+            });
+
+        expect(response.status).toBe(403);
+        expect(response.body.success).toBe(false);
+        expect(response.body.message).toBe('You do not have permission to perform this action');
     });
 });

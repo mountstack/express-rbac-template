@@ -16,6 +16,7 @@ const swaggerDocument = require('./config/swagger/swagger-output.json');
 const authRoutes = require('./routes/auth');
 const roleRoutes = require('./routes/role');
 const permissionRoutes = require('./routes/permission');
+const userRoutes = require('./routes/user');
 
 // Enable colors
 colors.enable();
@@ -53,6 +54,7 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, { docExpa
 app.use('/api/auth', authRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/permissions', permissionRoutes);
+app.use('/api/users', userRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
