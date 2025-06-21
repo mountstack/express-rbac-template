@@ -45,6 +45,3 @@ module.exports = {
     hasPermission
 }; 
 
-
-
-// create user with role 
