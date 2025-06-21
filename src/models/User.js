@@ -25,9 +25,9 @@ const userSchema = new mongoose.Schema({
         ref: 'Role'
     },
     type: {
-        type: String,
-        enum: ['bussiness owner', 'employee', 'customer'],
-        default: 'customer'
+        type: String, 
+        enum: ['BUSINESS-OWNER','CUSTOMER','EMPLOYEE'],
+        default: 'CUSTOMER'
     },
     status: {
         type: String,

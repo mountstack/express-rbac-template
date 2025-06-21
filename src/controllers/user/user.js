@@ -1,6 +1,7 @@
 const User = require('../../models/User');
 const ErrorHandler = require('../../utils/ErrorHandler');
 const mongoose = require('mongoose');
+const Role = require('../../models/role/Role');
 
 exports.updateUserDetails = async (req, res, next) => {
     /*
@@ -73,7 +74,7 @@ exports.setUserRole = async (req, res, next) => {
     */
     try {
         const { roleId } = req.body;
-        const userId = req.user._id;
+        const userId = req.user._id; 
 
         if (!roleId) {
             return next(ErrorHandler.badRequest('Role ID is required'));

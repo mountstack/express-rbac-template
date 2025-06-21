@@ -13,20 +13,30 @@ dotenv.config();
 // Override error middleware for testing
 app.use(testErrorMiddleware);
 
+let permissionsCollection;
+
 // Connect to test database before running tests
 beforeAll(async () => {
     // Use test database URI
-    const MONGODB_URI = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/sell-ecommerce-test';
-    await mongoose.connect(MONGODB_URI); 
+    const MONGODB_URI = process.env.MONGODB_LOCAL_TEST_URI;
+    await mongoose.connect(MONGODB_URI);
+
+    permissionsCollection = mongoose.connection.db.collection('permissions');
+    await permissionsCollection.insertMany([
+        { name: 'role_view', label: 'View', module: 'role' },
+        { name: 'role_edit', label: 'Edit', module: 'role' },
+    ]);
 });
 
 // Clear database after each test
 afterEach(async () => {
     await User.deleteMany({});
+    await Role.deleteMany({});
 });
 
 // Close database connection after all tests
 afterAll(async () => {
+    await permissionsCollection.deleteMany({});
     await mongoose.connection.close();
 });
 
@@ -39,7 +49,7 @@ describe('User Controller - Update User Details', () => {
         testUser = await User.create({
             email: 'test@gmail.com',
             password: '12345678'
-        }); 
+        });
 
         // Generate access token
         accessToken = jwt.sign(
@@ -111,7 +121,7 @@ describe('User Controller - Set User Role', () => {
         testUser = await User.create({
             email: 'test@gmail.com',
             password: '12345678',
-            type: 'bussiness owner'
+            type: process.env.USER_TYPES.split(',')[0]
         });
 
         // Generate access token
@@ -139,13 +149,12 @@ describe('User Controller - Set User Role', () => {
         expect(response.body.data.user.role).toBe(testRoleId);
     });
 
-
     test('should not set user role without role ID', async () => {
         const response = await request(app)
             .put('/api/users/set-new-role')
             .set('Authorization', `Bearer ${accessToken}`)
             .send({});
-        
+
         expect(response.status).toBe(400);
         expect(response.body.success).toBe(false);
         expect(response.body.message).toBe('Role ID is required');
@@ -190,25 +199,35 @@ describe('User Controller - Set User Role', () => {
     });
 
     test('should not set user role without role_edit permission', async () => {
-        // Create a role with a different permission (not role_edit)
-        const roleWithoutPermission = await Role.create({
-            name: 'Limited Role',
-            permissions: [new mongoose.Types.ObjectId()] // A valid permission ID that's not role_edit
+        // fetch all permissions 
+        const permissions = await mongoose.connection.db
+            .collection('permissions')
+            .find().toArray();
+
+        // create a role 
+        const role = await Role.create({
+            name: 'HR',
+            permissions: permissions
+                .filter(permission => permission.name !== 'role_edit')
+                .map(permission => permission._id)
         });
 
-        // Create a user with the limited role
+        // create an employee type user with role HR & above permisssions 
         const limitedUser = await User.create({
-            email: 'limited@test.com',
-            password: 'password123',
-            type: 'employee',
-            role: roleWithoutPermission._id
+            email: 'test-user@gmail.com',
+            password: '12345678',
+            role: role._id,
+            type: process.env.USER_TYPES.split(',')[2]
         });
 
+        // Generate access token
         const limitedUserToken = jwt.sign(
             { _id: limitedUser._id },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
         );
+
+        const testRoleId = new mongoose.Types.ObjectId().toString();
 
         const response = await request(app)
             .put('/api/users/set-new-role')
@@ -222,3 +241,4 @@ describe('User Controller - Set User Role', () => {
         expect(response.body.message).toBe('You do not have permission to perform this action');
     });
 });
+

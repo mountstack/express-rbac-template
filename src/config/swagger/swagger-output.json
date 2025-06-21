@@ -54,11 +54,48 @@
               "properties": {
                 "email": {
                   "type": "string",
-                  "example": "user@example.com"
+                  "example": "user@gmail.com"
                 },
                 "password": {
                   "type": "string",
-                  "example": "Password123"
+                  "example": "12345678"
+                },
+                "role": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "string"
+                    },
+                    "default": {}
+                  }
+                },
+                "type": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "string"
+                    },
+                    "enum": {
+                      "type": "array",
+                      "example": [
+                        "CUSTOMER",
+                        "EMPLOYEE"
+                      ],
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "description": {
+                      "type": "string",
+                      "example": "User type"
+                    },
+                    "default": {
+                      "type": "string",
+                      "example": "CUSTOMER"
+                    }
+                  }
                 }
               }
             }

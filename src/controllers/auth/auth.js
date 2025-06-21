@@ -42,14 +42,14 @@ const generateTokens = async (user, next) => {
             { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
         );
 
-        // Store refresh token in user document, keeping only last 50 tokens
+        // Store refresh token in user document, keeping only last 10 tokens
         await User.findByIdAndUpdate(
             user._id,
             {
                 $push: {
                     refreshToken: {
                         $each: [`Bearer ${refreshToken}`],
-                        $slice: -50 
+                        $slice: -10 
                     }
                 }
             }
@@ -74,13 +74,23 @@ exports.signup = async (req, res, next) => {
             description: 'User signup credentials',
             required: true,
             schema: {
-                email: 'user@example.com',
-                password: 'Password123'
+                email: 'user@gmail.com',
+                password: '12345678', 
+                role: {
+                    type: 'string', 
+                    default: null
+                },
+                type: {
+                    type: 'string',
+                    enum: ['CUSTOMER', 'EMPLOYEE'],
+                    description: 'User type',
+                    default: 'CUSTOMER'
+                }
             }
         }
     */
     try {
-        const { email, password } = req.body;
+        const { email, password, role=null, type='CUSTOMER' } = req.body;
 
         // Check for required fields
         if (!email || !password) {
@@ -103,13 +113,12 @@ exports.signup = async (req, res, next) => {
             return next(ErrorHandler.badRequest('Email already exists'));
         }
 
+        if(type === 'EMPLOYEE' && !role) {
+            return next(ErrorHandler.badRequest('Role is required for EMPLOYEE type'));
+        }
+
         // Create new user 
-        // customer will not have any role, role is for employees
-        // customer will have type - customer
-        const user = await User.create({
-            email,
-            password
-        });
+        const user = await User.create({ email, password, role, type });
 
         // Generate tokens
         const { accessToken, refreshToken } = await generateTokens(user, next);
@@ -122,7 +131,8 @@ exports.signup = async (req, res, next) => {
                 user: {
                     _id: user._id,
                     email: user.email,
-                    role: user.role || null
+                    role: user.role || null,
+                    type: user.type
                 },
                 accessToken,
                 refreshToken
@@ -193,7 +203,8 @@ exports.signin = async (req, res, next) => {
                 user: {
                     _id: user._id,
                     email: user.email,
-                    role: user.role || null
+                    role: user.role || null, 
+                    type: user.type
                 },
                 accessToken,
                 refreshToken

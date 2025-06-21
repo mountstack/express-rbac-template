@@ -16,7 +16,7 @@ app.use(testErrorMiddleware);
 // Connect to test database before running tests
 beforeAll(async () => {
     // Use test database URI
-    const MONGODB_URI = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/sell-ecommerce-test';
+    const MONGODB_URI = process.env.MONGODB_LOCAL_TEST_URI;
     await mongoose.connect(MONGODB_URI); 
 });
 
@@ -33,7 +33,9 @@ afterAll(async () => {
 describe('Auth Controller - Signup', () => {
     const validUserData = {
         email: 'test@gmail.com',
-        password: '12345678'
+        password: '12345678', 
+        type: 'CUSTOMER', 
+        role: null
     };
 
     test('should create a new user with valid data', async () => {
@@ -41,9 +43,11 @@ describe('Auth Controller - Signup', () => {
             .post('/api/auth/signup')
             .send(validUserData); 
 
+
         expect(response.status).toBe(201);
         expect(response.body.success).toBe(true);
         expect(response.body.data.user).toHaveProperty('_id');
+        expect(response.body.data.user.type).toBe(validUserData.type);
         expect(response.body.data.user.email).toBe(validUserData.email);
         expect(response.body.data).toHaveProperty('accessToken');
         expect(response.body.data).toHaveProperty('refreshToken');
@@ -89,13 +93,16 @@ describe('Auth Controller - Signup', () => {
         expect(response.body.message).toBe('Password must be at least 8 characters long');
     });
 
-    test('should not create user without required fields', async () => {
+    test('should not create employee without role', async () => {
+        validUserData.type = 'EMPLOYEE';
+
         const response = await request(app)
             .post('/api/auth/signup')
-            .send({});
+            .send(validUserData);
 
         expect(response.status).toBe(400);
         expect(response.body.success).toBe(false);
+        expect(response.body.message).toBe('Role is required for EMPLOYEE type');
     });
 });
 

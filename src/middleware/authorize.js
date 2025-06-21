@@ -10,7 +10,7 @@ const hasPermission = (requiredPermission) => {
             }
 
             // Business owners have all permissions
-            if (req.user.type === 'bussiness owner') {
+            if (req.user.type === process.env.USER_TYPES.split(',')[0]) {
                 return next();
             }
 
@@ -44,3 +44,7 @@ const hasPermission = (requiredPermission) => {
 module.exports = {
     hasPermission
 }; 
+
+
+
+// create user with role 

@@ -10,9 +10,7 @@
     "seed:all": "npm run seed:admin && npm run seed:permissions",
     "watchDoc": "nodemon --watch src/ -e js src/config/swagger/swagger.js",
     "dev": "concurrently \"npm run seed:all\" \"nodemon src/app.js\" \"npm run watchDoc\"",
-    "test": "jest --detectOpenHandles",
-    "test:user": "jest src/tests/user.test.js --detectOpenHandles",
-    "test:watch": "jest --watch"
+    "test": "jest --detectOpenHandles --verbose" 
   },
   "author": "",
   "license": "ISC",

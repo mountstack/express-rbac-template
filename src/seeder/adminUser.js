@@ -15,16 +15,18 @@ mongoose.connect(MONGODB_URI)
         process.exit(1);
     });
 
-const adminData = {
-    email: process.env.ADMIN_EMAIL,
-    password: '12345678',
-    type: 'bussiness owner'
-};
+const ADMIN_TYPE = process.env.USER_TYPES.split(',')[0] || 'BUSINESS-OWNER';
 
-const seedAdmin = async () => {
+const adminData = { 
+    email: process.env.ADMIN_EMAIL, 
+    password: '12345678', 
+    type: ADMIN_TYPE 
+}; 
+
+const seedAdmin = async () => { 
     try {
         // Check if business owner already exists
-        const existingAdmin = await User.findOne({ type: 'bussiness owner' });
+        const existingAdmin = await User.findOne({ type: ADMIN_TYPE });
         
         if (existingAdmin) { 
             process.exit(0);
