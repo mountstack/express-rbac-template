@@ -24,4 +24,7 @@ const roleSchema = new mongoose.Schema({
     timestamps: true 
 });
 
+// Add database indexes for better performance
+roleSchema.index({ name: 1 }); 
+
 module.exports = mongoose.model('Role', roleSchema); 
