@@ -5,6 +5,7 @@ const Role = require('../../models/role/Role');
 const User = require('../../models/User');
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
+const Permission = require('../../models/role/Permission');
 
 // Load environment variables
 dotenv.config();
@@ -13,7 +14,6 @@ dotenv.config();
 const testErrorMiddleware = require('../../utils/testErrorMiddleware');
 app.use(testErrorMiddleware);
 
-let permissionsCollection;
 let testUser;
 let accessToken;
 let testRole;
@@ -25,12 +25,11 @@ beforeAll(async () => {
     await mongoose.connect(MONGODB_URI);
 
     // Ensure we have basic permissions for testing
-    permissionsCollection = mongoose.connection.db.collection('permissions');
-    const existingPermissions = await permissionsCollection.find().toArray();
+    const existingPermissions = await Permission.find(); 
     
     if (existingPermissions.length === 0) {
         // Insert basic permissions for testing
-        await permissionsCollection.insertMany([
+        await Permission.insertMany([
             { name: 'role_create', label: 'Create', module: 'role' },
             { name: 'role_manage', label: 'Manage', module: 'role' },
             { name: 'role_view', label: 'View', module: 'role' },
@@ -55,9 +54,9 @@ afterAll(async () => {
 // Helper function to create test user with specific permissions
 const createTestUser = async (permissions = ['role_create', 'role_manage', 'role_view', 'role_edit', 'role_delete'], roleName = null) => {
     // Get permission IDs
-    const permissionDocs = await permissionsCollection
+    const permissionDocs = await Permission
         .find({ name: { $in: permissions } })
-        .toArray();
+        ;
     
     
     const permissionIds = permissionDocs.map(p => p._id);
@@ -65,7 +64,7 @@ const createTestUser = async (permissions = ['role_create', 'role_manage', 'role
     // Ensure we have at least one permission
     if (permissionIds.length === 0) { 
         // Fallback to role_view if the requested permission doesn't exist
-        const fallbackPermission = await permissionsCollection.findOne({ name: 'role_view' });
+        const fallbackPermission = await Permission.findOne({ name: 'role_view' });
         if (fallbackPermission) {
             permissionIds.push(fallbackPermission._id); 
         } else {
@@ -105,7 +104,7 @@ describe('Role Controller - Create Role', () => {
     });
 
     test('should create role with valid data', async () => {
-        const permissions = await permissionsCollection.find().toArray();
+        const permissions = await Permission.find();
         const permissionIds = permissions.slice(0, 2).map(p => p._id.toString());
 
         const response = await request(app)
@@ -124,7 +123,7 @@ describe('Role Controller - Create Role', () => {
     });
 
     test('should not create role without name', async () => {
-        const permissions = await permissionsCollection.find().toArray();
+        const permissions = await Permission.find();
         const permissionIds = permissions.slice(0, 1).map(p => p._id.toString());
 
         const response = await request(app)
@@ -154,7 +153,7 @@ describe('Role Controller - Create Role', () => {
     });
 
     test('should not create role with duplicate name', async () => {
-        const permissions = await permissionsCollection.find().toArray();
+        const permissions = await Permission.find();
         const permissionIds = permissions.slice(0, 1).map(p => p._id.toString());
 
         // Create first role
@@ -178,7 +177,7 @@ describe('Role Controller - Create Role', () => {
     });
 
     test('should not create role without authentication', async () => {
-        const permissions = await permissionsCollection.find().toArray();
+        const permissions = await Permission.find();
         const permissionIds = permissions.slice(0, 1).map(p => p._id.toString());
 
         const response = await request(app)
@@ -197,7 +196,7 @@ describe('Role Controller - Create Role', () => {
         const testData = await createTestUser(['role_view'], 'View Only Role');
         const limitedToken = testData.token;
 
-        const permissions = await permissionsCollection.find().toArray();
+        const permissions = await Permission.find();
         const permissionIds = permissions.slice(0, 1).map(p => p._id.toString());
 
         const response = await request(app)
@@ -223,7 +222,7 @@ describe('Role Controller - Get All Roles', () => {
 
     test('should get all roles', async () => {
         // Create some test roles
-        const permissions = await permissionsCollection.find().toArray();
+        const permissions = await Permission.find();
         const permissionIds = permissions.slice(0, 1).map(p => p._id);
 
         await Role.create([
@@ -376,7 +375,7 @@ describe('Role Controller - Update Role', () => {
 
     test('should not update role with duplicate name', async () => {
         // Create another role
-        const permissions = await permissionsCollection.find().toArray();
+        const permissions = await Permission.find();
         const permissionIds = permissions.slice(0, 1).map(p => p._id);
         
         await Role.create({
@@ -462,7 +461,7 @@ describe('Role Controller - Delete Role', () => {
 
     test('should delete role successfully', async () => {
         // Create a separate role that is not assigned to any user
-        const permissions = await permissionsCollection.find().toArray();
+        const permissions = await Permission.find();
         const permissionIds = permissions.slice(0, 1).map(p => p._id);
         
         const deletableRole = await Role.create({

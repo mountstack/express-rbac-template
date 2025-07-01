@@ -10,7 +10,7 @@
     "seed:all": "npm run seed:admin && npm run seed:permissions",
     "watchDoc": "nodemon --watch src/ -e js src/config/swagger/swagger.js",
     "dev": "concurrently \"npm run seed:all\" \"nodemon src/app.js\" \"npm run watchDoc\"",
-    "test": "jest --detectOpenHandles --verbose" 
+    "test": "jest --detectOpenHandles --verbose"
   },
   "author": "",
   "license": "ISC",
@@ -30,6 +30,7 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "artillery": "^2.0.23",
     "concurrently": "^9.1.2",
     "jest": "^29.7.0",
     "nodemon": "^3.1.10",

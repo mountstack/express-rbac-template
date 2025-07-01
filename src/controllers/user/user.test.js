@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const testErrorMiddleware = require('../../utils/testErrorMiddleware');
 const jwt = require('jsonwebtoken');
 const Role = require('../../models/role/Role');
+const Permission = require('../../models/role/Permission');
 
 // Load environment variables
 dotenv.config();
@@ -13,19 +14,11 @@ dotenv.config();
 // Override error middleware for testing
 app.use(testErrorMiddleware);
 
-let permissionsCollection;
-
 // Connect to test database before running tests
 beforeAll(async () => {
     // Use test database URI
     const MONGODB_URI = process.env.MONGODB_LOCAL_TEST_URI;
     await mongoose.connect(MONGODB_URI);
-
-    permissionsCollection = mongoose.connection.db.collection('permissions');
-    await permissionsCollection.insertMany([
-        { name: 'role_view', label: 'View', module: 'role' },
-        { name: 'role_edit', label: 'Edit', module: 'role' },
-    ]);
 });
 
 // Clear database after each test
@@ -35,8 +28,7 @@ afterEach(async () => {
 });
 
 // Close database connection after all tests
-afterAll(async () => {
-    await permissionsCollection.deleteMany({});
+afterAll(async () => { 
     await mongoose.connection.close();
 });
 
@@ -200,9 +192,7 @@ describe('User Controller - Set User Role', () => {
 
     test('should not set user role without role_edit permission', async () => {
         // fetch all permissions 
-        const permissions = await mongoose.connection.db
-            .collection('permissions')
-            .find().toArray();
+        const permissions = await Permission.find();
 
         // create a role 
         const role = await Role.create({

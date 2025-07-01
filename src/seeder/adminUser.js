@@ -5,8 +5,14 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
-const MONGODB_URI = process.env.NODE_ENV === 'development' ? process.env.MONGODB_LOCAL_URI : process.env.MONGODB_URI;
+const dbUri = {
+    production: process.env.MONGODB_URI, 
+    test: process.env.MONGODB_LOCAL_TEST_URI, 
+    development: process.env.MONGODB_LOCAL_URI,
+}
+
+const MONGODB_URI = dbUri[process.env.NODE_ENV];
+
 
 mongoose.connect(MONGODB_URI)
     .then(() => console.log('MongoDB Connected'))

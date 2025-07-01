@@ -1,5 +1,4 @@
-const ErrorHandler = require('../utils/ErrorHandler');
-const Role = require('../models/role/Role');
+const ErrorHandler = require('../utils/ErrorHandler'); 
 const mongoose = require('mongoose');
 
 const hasPermission = (requiredPermission) => {
@@ -17,22 +16,14 @@ const hasPermission = (requiredPermission) => {
             // Check if user has a role
             if (!req.user.role) {
                 return next(ErrorHandler.forbidden('You do not have permission to perform this action'));
-            }
+            } 
 
-            // Get the permission ID from the permissions collection
-            const permission = await mongoose.connection.db.collection('permissions')
-                .findOne({ name: requiredPermission });
-
-            if (!permission) {
-                return next(ErrorHandler.serverError('Invalid permission'));
-            }
-
-            // Get user's role and check permission
-            const role = await Role.findById(req.user.role);
-            if (!role?.permissions?.includes(permission._id)) {
+            const hasRequiredPermission = req.user.role.permissions.some(
+                permission => permission.name === requiredPermission);
+            if (!hasRequiredPermission) {
                 return next(ErrorHandler.forbidden('You do not have permission to perform this action'));
             }
-
+            
             next();
         } 
         catch (error) {

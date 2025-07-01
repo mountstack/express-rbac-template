@@ -1,3 +1,4 @@
+const Permission = require('../models/role/Permission'); 
 var colors = require('colors');
 colors.enable(); // Enable colors
 
@@ -7,20 +8,14 @@ const mongoose = require('mongoose');
 // Load environment variables
 dotenv.config();
 
-// MongoDB connection string
-const MONGODB_URI = process.env.NODE_ENV === 'development' ? process.env.MONGODB_LOCAL_URI : process.env.MONGODB_URI;
+const dbUri = {
+    production: process.env.MONGODB_URI, 
+    test: process.env.MONGODB_LOCAL_TEST_URI, 
+    development: process.env.MONGODB_LOCAL_URI,
+}
 
+const MONGODB_URI = dbUri[process.env.NODE_ENV];
 
-// Define Permission Schema 
-const permissionSchema = new mongoose.Schema({ 
-    name: { type: String, required: true, unique: true }, 
-    label: { type: String, required: true }, 
-    module: { type: String, required: true } 
-}); 
-
-
-// Model
-const Permission = mongoose.model('Permission', permissionSchema);
 
 const permissions = [
     // User Module Permissions

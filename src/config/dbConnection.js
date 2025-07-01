@@ -2,9 +2,18 @@ const mongoose = require('mongoose');
 const colors = require('colors');
 
 const connectDB = async () => {
+    if(process.env.NODE_ENV === 'test') return; 
+    
     try {
-        const conn = await mongoose.connect(process.env.MONGODB_LOCAL_URI);
-        console.log(`MongoDB Connected: ${conn.connection.host}`.cyan.underline);
+        const dbUri = { 
+            production: process.env.MONGODB_URI,  
+            development: process.env.MONGODB_LOCAL_URI,
+        } 
+        
+        const MONGODB_URI = dbUri[process.env.NODE_ENV];
+
+        const conn = await mongoose.connect(MONGODB_URI);
+        console.log(`MongoDB Connected: ${process.env.NODE_ENV}`.cyan.underline);
     }
     catch (error) {
         console.error(`Error: ${error.message}`.red.underline.bold);

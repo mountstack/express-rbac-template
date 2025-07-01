@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const ErrorHandler = require('../utils/ErrorHandler');
+const ErrorHandler = require('../utils/ErrorHandler'); 
 
-const protect = async (req, res, next) => {
-    try {
+const protect = async (req, res, next) => { 
+    try { 
         let token; 
 
         // Check if token exists in headers
@@ -17,12 +17,19 @@ const protect = async (req, res, next) => {
 
         try {
             // Verify token
-            const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+            const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); 
 
             // Get user from token
-            const user = await User.findById(decoded._id);
+            const user = await User.findById(decoded._id)
+                .populate({
+                    path: 'role',
+                    populate: {
+                        path: 'permissions' 
+                    }
+                });
 
             if (!user) {
+                console.log('User not found for ID:', decoded._id);
                 return next(ErrorHandler.unauthorized('User not found'));
             }
 
@@ -35,7 +42,7 @@ const protect = async (req, res, next) => {
             req.user = user;
             next();
         } 
-        catch (error) {
+        catch (error) { 
             return next(ErrorHandler.unauthorized('Not authorized to access this route'));
         }
     } 

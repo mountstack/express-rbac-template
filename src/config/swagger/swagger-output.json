@@ -181,6 +181,13 @@
         ],
         "summary": "Get all roles",
         "description": "Retrieves a list of all roles.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successfully retrieved roles."
@@ -199,6 +206,11 @@
         "summary": "Create a new role",
         "description": "Creates a new role with a unique name and at least one permission.",
         "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
           {
             "name": "obj",
             "in": "body",
@@ -251,6 +263,11 @@
             "required": true,
             "type": "string",
             "description": "Role ID"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
           }
         ],
         "responses": {
@@ -280,6 +297,11 @@
             "required": true,
             "type": "string",
             "description": "Role ID"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
           },
           {
             "name": "body",
@@ -321,6 +343,11 @@
             "required": true,
             "type": "string",
             "description": "Role ID"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
           }
         ],
         "responses": {
