@@ -17,11 +17,11 @@ const MONGODB_URI = dbUri[process.env.NODE_ENV];
 mongoose.connect(MONGODB_URI)
     .then(() => console.log('MongoDB Connected'))
     .catch(err => {
-        console.error('MongoDB connection error:', err);
+        console.error('MongoDB connection error:', err.message);
         process.exit(1);
     });
 
-const ADMIN_TYPE = process.env.USER_TYPES.split(',')[0] || 'BUSINESS-OWNER';
+const ADMIN_TYPE = process.env.ADMIN_USER_TYPE || 'ADMIN';
 
 const adminData = { 
     email: process.env.ADMIN_EMAIL, 
@@ -31,7 +31,7 @@ const adminData = {
 
 const seedAdmin = async () => { 
     try {
-        // Check if business owner already exists
+        // Check if business-owner already exists
         const existingAdmin = await User.findOne({ type: ADMIN_TYPE });
         
         if (existingAdmin) { 
@@ -40,14 +40,14 @@ const seedAdmin = async () => {
 
         // Create admin user
         const admin = await User.create(adminData);
-        console.log('Business owner created successfully:', admin.email);
+        console.log(`${ADMIN_TYPE} created successfully: ${admin.email}`);
         process.exit(0);
     } 
     catch (error) {
-        console.error('Error creating business owner:', error);
+        console.error(`Error creating ${ADMIN_TYPE}: ${error.message}`);
         process.exit(1);
     }
 };
 
-// Run the seeder
+// Run the seeder 
 seedAdmin(); 

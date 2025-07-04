@@ -1,5 +1,4 @@
 const ErrorHandler = require('../utils/ErrorHandler'); 
-const mongoose = require('mongoose');
 
 const hasPermission = (requiredPermission) => {
     return async (req, res, next) => {
@@ -9,7 +8,7 @@ const hasPermission = (requiredPermission) => {
             }
 
             // Business owners have all permissions
-            if (req.user.type === process.env.USER_TYPES.split(',')[0]) {
+            if (req.user.type === process.env.ADMIN_USER_TYPE) {
                 return next();
             }
 

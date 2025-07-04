@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -16,8 +18,7 @@ const userSchema = new mongoose.Schema({
         trim: true
     },
     password: {
-        type: String,
-        required: true, 
+        type: String, 
         select: false
     },
     role: {
@@ -26,8 +27,8 @@ const userSchema = new mongoose.Schema({
     },
     type: {
         type: String, 
-        enum: ['BUSINESS-OWNER','CUSTOMER','EMPLOYEE'],
-        default: 'CUSTOMER'
+        enum: process.env.USER_TYPES.split(','),
+        default: process.env.DEFAULT_USER_TYPE
     },
     status: {
         type: String,
