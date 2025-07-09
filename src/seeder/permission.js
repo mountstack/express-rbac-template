@@ -32,12 +32,8 @@ const permissions = [
     { name: 'role_edit', label: 'Edit', module: 'role' },
     { name: 'role_delete', label: 'Delete', module: 'role' },
 
-    // Company Settings Module Permissions
-    { name: 'company_setting_manage', label: 'Manage', module: 'company_setting' },
-    { name: 'company_setting_view', label: 'View', module: 'company_setting' },
-    { name: 'company_setting_create', label: 'Create', module: 'company_setting' },
-    { name: 'company_setting_edit', label: 'Edit', module: 'company_setting' },
-    { name: 'company_setting_delete', label: 'Delete', module: 'company_setting' },
+    // Company Settings Module Permissions 
+    { name: 'company_setting_edit', label: 'Edit', module: 'company_setting' }, 
 
     // Category Module Permissions
     { name: 'category_manage', label: 'Manage', module: 'category' },

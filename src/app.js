@@ -17,6 +17,7 @@ const authRoutes = require('./routes/auth');
 const roleRoutes = require('./routes/role');
 const permissionRoutes = require('./routes/permission');
 const userRoutes = require('./routes/user');
+const settingsRoutes = require('./routes/settings');
 
 // Enable colors
 colors.enable();
@@ -55,6 +56,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
